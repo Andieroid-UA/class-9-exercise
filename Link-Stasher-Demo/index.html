@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Link Stasher | Save Links & Clear Your Mind!</title>
+    <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+    <main class="container">
+        <h1>Link Stasher</h1>
+        <div class="overlay"></div>
+        <form id="link-form">
+            <label for="link" class="sr-only">Enter Your Link</label>
+            <input class="link-input" type="text" id="link" name="link" placeholder="What did you find?" />
+            <button type="submit" class="btn" aria-label="Add new link">&plus;</button>
+        </form>
+        <ul class="link-list">
+            <!-- Links added here -->
+        </ul>
+    </main>
+
+<!--------------------- JavaScript -->
+    <script>
+        // HTML Element Selectors
+        const body = document.body;
+        const input = document.querySelector('.link-input');
+        const form = document.querySelector('#link-form');
+        const linkList = document.querySelector('.link-list');
+        const allLinks = JSON.parse(localStorage.getItem('link_list')) || [];
+        const BASE_URL = 'https://opengraph.io/api/1.1/site';
+        const API_KEY = 'da196fbf-7f55-45e7-9c18-2e8103c77a6d';
+
+        // Repopulate HTML List
+        populateLinkList(allLinks);
+
+        // Event Listeners
+        input.addEventListener('focusin', focusInput);
+        input.addEventListener('focusout', endFocus);
+
+        // Event Listener to submit the form
+        form.addEventListener('submit', createLink);
+
+        function focusInput() {
+            body.classList.add('focus-form');
+        }
+
+        function endFocus() {
+            if (body.classList.contains('focus-form')) body.classList.remove('focus-form');
+        }
+
+        async function createLink(e) {
+            // Prevent the form from submitting
+            e.preventDefault();
+
+            // Validation: Check if the input is empty
+            if (!input.value) return;
+
+            // Grab data from the website's metadata
+            const link = await fetchURLMetaData(input.value);
+
+            // Add the link to the linkList
+            allLinks.push(link);
+
+            // Repopulate HTML List
+            populateLinkList(allLinks);
+
+            // Save List to Local Storage
+            saveLinkListToLocalStorage(allLinks);
+
+            // Reset the input box
+            input.value = '';
+        }
+
+        // FUNCTION: Saves Link List in Local Storage
+        function saveLinkListToLocalStorage(links = []) {
+            localStorage.setItem('link_list', JSON.stringify(links));
+        }
+
+        function populateLinkList(links = []) {
+            // Loop over all links and create a new bookmark for each element
+            linkList.innerHTML = links
+                .map(
+                    (link, idx) => `
+                    <li data-index=${idx}>
+                        <a class="link" href=${link.url} target="_blank" >${link.title}</a>
+                        <button class="close-btn">&times;</button>
+                    </li>`
+                )
+                .join('');
+        }
+
+        async function fetchURLMetaData(url) {
+            const res = await fetch(`${BASE_URL}/${encodeURIComponent(url)}?app_id=${API_KEY}`);
+            const data = await res.json();
+
+            // Validation: Check if there's an error with the URL
+            if (data.code < 0 || data.code >= 300) alert('Error with that URL');
+
+            return { title: data.hybridGraph.title, image: data.hybridGraph.image, url };
+        }
+
+        linkList.addEventListener('click', removeLink);
+
+        function removeLink(e) {
+            // If we are not clicking on the "x"... don't run any more code
+            if (!e.target.matches('.close-btn')) return;
+
+            // Find the index
+            const idx = e.target.parentNode.dataset.index;
+
+            // Remove the link from the list
+            allLinks.splice(idx, 1);
+
+            // Refill the list
+            populateLinkList(allLinks);
+
+            // Save to local storage
+            saveLinkListToLocalStorage(allLinks);
+        }
+    </script>
+</body>
+</html>
