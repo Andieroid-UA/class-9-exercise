@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do List</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+    <div class="paper">
+        <div class="lines">
+<!------------------------------------------------------------------->   
+        <div class="overlay"></div>
+        <div class="floater content">
+            <form class="bookmark-form">
+                <div class="floater-top">
+                    <input type="text" class="form-control" placeholder="Enter your notes here">
+                </div>
+                <div class="floater-bottom">
+                    <button type="submit" class="btn btn-primary btn-sm">ENTER KEY Or Click Here</button>
+                </div>
+            </form>
+            </div>
+            
+            <div class="bookmarks-list content"></div>
+            
+        </div> 
+      </div>
+<!------------------------------------------------------------------->
+<script>
+    //only want this to show if we click into that input box. That's why the box and NOT the floater itself
+    const body      = document.body;
+    const input     = document.querySelector('input[type=text]');
+    const overlay   = document.querySelector('.overlay');
+
+    function showFloater() {
+        body.classList.add('show-floater');
+    }
+
+    function closeFloater() {
+        if (body.classList.contains('show-floater')) {
+            body.classList.remove('show-floater');
+        }
+        body.classList.remove('show-floater');
+    }
+
+    input.addEventListener('focusin', showFloater);
+    input.addEventListener('focusout', closeFloater);
+    overlay.addEventListener('click', closeFloater);
+
+    //===================================//  
+
+    //This will be saved on the local storage in the browser, no server needed
+    localStorage.setItem('my_thing', 'something');
+
+    const bookmarksList     = document.querySelector('.bookmarks-list');
+    const bookmarkForm      = document.querySelector('.bookmark-form');
+    const bookmarkInput     = bookmarkForm.querySelector('input[type=text]');
+    const bookmarks         = JSON.parse(localStorage.getItem('bookmarks')) || [];
+
+    fillBookmarksList(bookmarks);
+
+    // "e" is the event object. In practice, just use "e"
+    function createBookmark(e) {
+        e.preventDefault();
+
+        if (!bookmarkInput.value) {
+            alert('Please enter text');
+        } else {
+            const title         = bookmarkInput.value;
+            const bookmark      = {
+                title: title
+            };
+            bookmarks.push(bookmark);
+            fillBookmarksList(bookmarks);
+            storeBookmarks(bookmarks);
+            bookmarkForm.reset();
+    
+            console.table(bookmarks);
+        }
+    }
+
+    function fillBookmarksList(bookmarks = []) {
+        const bookmarksHtml = bookmarks.map((bookmark, i) => {
+            return `
+            <a href="#" class="bookmark" data-id="$[i]">
+                <div class="title"><div class="container"><label>
+                    <input type="checkbox"><span class="checkmark" onclick=boxChecked()>${bookmark.title}</span></div></div>
+                <span class="glyphicon glyphicon-remove"></span>
+            </a>
+            `;
+        }).join('');
+
+        bookmarksList.innerHTML = bookmarksHtml;
+    }
+//----------------------------------------------------------------------*/
+    function removeBookmark(e) {
+
+        if (!e.target.matches('.glyphicon-remove')) return;
+        // Find the index
+        const index = e.target.parentNode.dataset.id;
+        // remove it from the bookmarks list using splice
+        bookmarks.splice(index, 1);
+        // fill the list again
+        fillBookmarksList(bookmarks);
+        // store that new list back to local storage
+        storeBookmarks(bookmarks);
+    }
+
+    function storeBookmarks(bookmarks = []) {
+        localStorage.setItem('bookmarks', JSON.stringify(bookmarks));
+    }
+
+    bookmarkForm.addEventListener('submit', createBookmark);
+    bookmarksList.addEventListener('click', removeBookmark);
+
+    function boxChecked() {
+        alert("You checked the box!");
+    }
+
+</script>
+
+</body>f
+</html>
