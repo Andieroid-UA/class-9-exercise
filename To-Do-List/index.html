@@ -22,7 +22,7 @@
                 </div>
             </form>
             </div>
-            
+            <div class="label"><p>Click on the item to cross it out</p></div>
             <div class="bookmarks-list content"></div>
             
         </div> 
@@ -69,15 +69,22 @@
             alert('Please enter text');
         } else {
             const title         = bookmarkInput.value;
-            const bookmark      = {
+            if (bookmarks.length < 5) {
+            const bookmark = {
                 title: title
             };
+            if (title.length > 15) {
+                alert('Please enter less than 15 characters');
+                return;
+            }
             bookmarks.push(bookmark);
             fillBookmarksList(bookmarks);
             storeBookmarks(bookmarks);
             bookmarkForm.reset();
-    
             console.table(bookmarks);
+            } else {
+                alert('You can only have 5 items on this list');
+            }
         }
     }
 
@@ -85,8 +92,13 @@
         const bookmarksHtml = bookmarks.map((bookmark, i) => {
             return `
             <a href="#" class="bookmark" data-id="$[i]">
-                <div class="title"><div class="container"><label>
-                    <input type="checkbox"><span class="checkmark" onclick=boxChecked()>${bookmark.title}</span></div></div>
+            <div class="title">
+                <div class="container">
+                    <label>
+                    <input type="checkbox">
+                    <span class="checkmark" onclick=boxChecked()>${bookmark.title}</span>
+                </div>
+            </div>
                 <span class="glyphicon glyphicon-remove"></span>
             </a>
             `;
@@ -96,7 +108,6 @@
     }
 //----------------------------------------------------------------------*/
     function removeBookmark(e) {
-
         if (!e.target.matches('.glyphicon-remove')) return;
         // Find the index
         const index = e.target.parentNode.dataset.id;
@@ -115,11 +126,10 @@
     bookmarkForm.addEventListener('submit', createBookmark);
     bookmarksList.addEventListener('click', removeBookmark);
 
-    function boxChecked() {
-        alert("You checked the box!");
-    }
+    //function boxChecked() {
+    //}
 
 </script>
 
-</body>f
+</body>
 </html>
